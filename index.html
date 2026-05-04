@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Søvn</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Søvn">
+<meta name="theme-color" content="#faf8f4">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAADqklEQVR4nO3dQW7cRhCG0XaQU+gQXmSRg+SgPogXPlMWBAaCrV/mkPR0VfO9lXbqbn5TJCgJ+vL29nXAR/6avQDqEgeROIjEQSQOInEQiYNIHETiIBIHkTiIxEEkDiJxEImDSBxE4iASB5E4iMRBJA4icRCJg0gcROIgEgeROIjEQSQOInEQiYNIHETiIBIHkTiIxEEkDiJxEImDSBxE4iASB5E4iMRBJA4icRCJg+jv2Qt4nR/fv21f/PPvf3NX0sXKcTxqeE8Z+y0Yx4dNbJTxlHXi+KSJjTKetUIcv81iKOOQ3nHsyWIo46iucezMgjNavud4qgxj47B+cSjjZTrdVp69lSjjpDaTw0PG6/WI40AZxsZ5DeIwM2apHsexMoyNS5SOw8yYq24ch8swNq5SNA4zo4KKcSijiIpxnOGecqFycRgbddSKQxmlFIpDGdUUioNqqsRxydjwNHqtKnFQUIk4PG3UVCIOapofh7FR1vw4KEscRJPjcE+pzOQgEgfRzDjcU4pbanKo7VpLxcG1xEEkDqJpcXg+qG+1yaG5C60WBxcSB9GCcbizXGXBOLjKmnEYHpdYMw4usWwchsd5y8bBeSvHYXictHIcQx/nLB7H0McJ0+Lwd631rT85huFx1C3iGPo45C5xDH0870ZxDH08aWYcU55J9bHfvSbH5sf3bxUSqbCGz90xjs3ca1O/jDE9jrlvO2Zdoe371n/T0+nfeP0JL75OLQbGw93j2LwgkV5ZbL68vX2dvYZaB3d5Ih/urv49ZZgcv3pcy5PXr1Txx5SYHKPDUf62lf1baDE2hsmxX/18L1flPUeXD9N5jXZaJQ4KKhRHo4/UYb32WCiO0e3sntVud7XiGA1PcKeO+yoXB3VUjKPjh+xzTXdUMY7R9jQ/1HcvReMYnc/0vda7qBvHaH6yo//6S8cxOp9v35U/VI9j9Dzljmv+VYM4Rrez7rXaT/SIY/Q58S7r3KPK73PsV/ZH5ytlsWkzOR5qXoOaqzqpXxyj3pWotp6r9LutvDf9FrNqFpvecWymJLJ2FpsV4ti8LJE7ZLFZJ46HP1TJfZp4WDCOh0squWETDyvH8ZOdrdy5hp/cKA6e1fI9B68hDiJxEImDSBxE4iASB5E4iMRBJA4icRCJg0gcROIgEgeROIjEQSQOInEQiYNIHETiIBIHkTiIxEEkDiJxEImDSBxE4iASB5E4iMRBJA4icRCJg0gcROIgEgeROIjEQSQOov8BaBnFCmc/E3kAAAAASUVORK5CYII=">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --ink:     #1a1a2e;
+  --ink2:    #252540;
+  --surface: #f4f1ec;
+  --paper:   #faf8f4;
+  --edge:    #e2ddd6;
+  --accent:  #3d5a99;
+  --accent2: #6b8cce;
+  --muted:   #8a8a9a;
+  --muted2:  #b0aaaa;
+  --green:   #4a9e78;
+  --red:     #c45a5a;
+  --r:       14px;
+  --rs:      9px;
+}
+
+body {
+  font-family: 'Geist Mono', monospace;
+  background: var(--surface);
+  color: var(--ink);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ──────────────────────────── */
+.app-header {
+  display: flex;
+  align-items: center;
+  padding: 14px 20px 12px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--edge);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-logo {
+  font-family: 'Geist Mono', monospace;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── TAB BAR ─────────────────────────── */
+.tab-bar {
+  display: flex;
+  background: var(--paper);
+  position: sticky;
+  top: var(--header-h, 49px);
+  z-index: 99;
+  border-bottom: 1px solid var(--edge);
+}
+
+.tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--muted);
+  padding: 11px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Geist Mono', monospace;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.tab-btn.active { color: var(--ink); border-bottom-color: var(--ink); }
+
+/* ── CONTENT ─────────────────────────── */
+.tab-content { display: none; flex: 1; overflow-y: auto; position: relative; z-index: 1; }
+.tab-content.active { display: block; }
+
+/* ── WEEK NAV ────────────────────────── */
+.week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--edge);
+}
+
+.week-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.nav-btn {
+  background: none;
+  border: 1px solid var(--edge);
+  border-radius: 7px;
+  color: var(--muted);
+  width: 30px;
+  height: 30px;
+  font-size: 17px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-btn:active { background: var(--edge); }
+
+/* ── MODE TOGGLE BUTTON ──────────────── */
+.mode-btn {
+  background: none;
+  border: 1px solid var(--edge);
+  border-radius: var(--rs);
+  padding: 4px 10px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mode-btn.active { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+
+/* ── DAYS STRIP ──────────────────────── */
+.days-strip {
+  display: flex;
+  gap: 5px;
+  padding: 10px 14px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--edge);
+}
+
+.day-chip {
+  flex: 1;
+  background: none;
+  border: 1px solid var(--edge);
+  border-radius: var(--rs);
+  padding: 8px 2px;
+  color: var(--muted);
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  cursor: pointer;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.15s;
+  position: relative;
+}
+
+.day-chip .dn { font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; }
+.day-chip .dd { font-size: 15px; font-weight: 600; }
+
+.day-chip.active { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+
+.day-chip.has-data::after {
+  content: '';
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--green);
+  position: absolute;
+  bottom: 4px;
+}
+
+.day-chip.active.has-data::after { background: var(--accent2); }
+
+/* ── DIARY FORM ──────────────────────── */
+.diary-form { padding: 20px 20px 120px; }
+
+.date-heading {
+  font-family: 'Geist Mono', monospace;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 22px;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 12px;
+}
+
+.field-label { font-size: 13px; color: var(--ink); flex: 1; line-height: 1.3; }
+
+.time-tap {
+  background: var(--paper);
+  border: 1px solid var(--edge);
+  border-radius: var(--rs);
+  padding: 10px 14px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--ink);
+  min-width: 90px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  letter-spacing: 0.03em;
+  user-select: none;
+}
+
+.time-tap.empty { color: var(--muted2); }
+.time-tap:active { border-color: var(--accent); }
+
+.counter-row { display: flex; align-items: center; gap: 8px; }
+
+.counter-val {
+  background: var(--paper);
+  border: 1px solid var(--edge);
+  border-radius: var(--rs);
+  padding: 10px 0;
+  font-size: 15px;
+  font-weight: 400;
+  width: 56px;
+  text-align: center;
+}
+
+.cnt-btn {
+  background: var(--paper);
+  border: 1px solid var(--edge);
+  border-radius: var(--rs);
+  width: 34px; height: 34px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cnt-btn:active { background: var(--edge); }
+
+/* ── COMPUTED BLOCK ──────────────────── */
+.computed-block {
+  background: var(--paper);
+  border: 1px solid var(--edge);
+  border-radius: var(--r);
+  padding: 16px;
+  margin-bottom: 18px;
+  display: none;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.computed-block.show { display: grid; }
+
+.comp-item { text-align: center; }
+
+.comp-label {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted2);
+  margin-bottom: 4px;
+}
+
+.comp-val { font-size: 20px; font-weight: 600; color: var(--ink); }
+.comp-val.good { color: var(--green); }
+.comp-val.warn { color: #b08820; }
+.comp-val.bad  { color: var(--red); }
+
+/* ── STATS ───────────────────────────── */
+.stats-wrap { padding: 16px 16px 100px; }
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.stat-card {
+  background: var(--paper);
+  border: 1px solid var(--edge);
+  border-radius: var(--r);
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.stat-card-label {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted2);
+  margin-bottom: 5px;
+}
+
+.stat-card-val { font-size: 20px; font-weight: 400; color: var(--ink); }
+
+.chart-card {
+  background: var(--paper);
+  border: 1px solid var(--edge);
+  border-radius: var(--r);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.chart-title {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted2);
+  margin-bottom: 14px;
+}
+
+.chart-wrap { position: relative; height: 340px; }
+
+.legend { display: flex; gap: 14px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+
+.leg { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); letter-spacing: 0.05em; }
+
+.leg-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+.empty-msg { text-align: center; padding: 60px 20px; color: var(--muted2); font-size: 13px; line-height: 1.8; }
+.empty-moon { font-size: 40px; display: block; margin-bottom: 14px; }
+
+/* ── PICKER ──────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26,26,46,0.55);
+  backdrop-filter: blur(3px);
+  z-index: 500;
+  display: none;
+  align-items: flex-end;
+}
+
+.overlay.open { display: flex; }
+
+.picker-sheet {
+  width: 100%;
+  background: var(--paper);
+  border-radius: 20px 20px 0 0;
+  border-top: 1px solid var(--edge);
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+.overlay.open .picker-sheet { animation: slideUp 0.22s ease; }
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--edge);
+}
+
+.picker-lbl { font-size: 14px; font-weight: 600; color: var(--ink); }
+
+.picker-cancel, .picker-done {
+  background: none;
+  border: none;
+  font-family: 'Geist Mono', monospace;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.picker-cancel { color: var(--muted); }
+.picker-done   { color: var(--accent); font-weight: 600; }
+
+.picker-wheels {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 20px 16px;
+  position: relative;
+}
+
+.picker-wheels::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 170px;
+  height: 46px;
+  border-top: 1px solid var(--edge);
+  border-bottom: 1px solid var(--edge);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.picker-colon { font-size: 22px; font-weight: 600; color: var(--ink); margin: 0 4px; user-select: none; }
+.picker-unit { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: var(--muted); text-transform: lowercase; min-height: 16px; }
+
+.wheel {
+  height: 230px;
+  width: 76px;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.wheel::-webkit-scrollbar { display: none; }
+
+.wheel-spacer { height: 92px; }
+
+.wheel-item {
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--muted2);
+  scroll-snap-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── TOAST ───────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  background: var(--ink);
+  color: var(--surface);
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  z-index: 900;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+  white-space: nowrap;
+}
+
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-logo">Søvn</div>
+</header>
+
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="diary">Registrering</button>
+  <button class="tab-btn" data-tab="stats">Oversikt</button>
+</div>
+
+<!-- DIARY TAB -->
+<div id="tab-diary" class="tab-content active">
+  <div class="week-nav">
+    <button class="nav-btn" onclick="changeWeek(-1)">‹</button>
+    <span class="week-label" id="week-label">Uke —</span>
+    <button class="nav-btn" onclick="changeWeek(1)">›</button>
+  </div>
+
+  <div class="days-strip" id="days-strip"></div>
+
+  <div class="diary-form">
+    <div class="date-heading" id="date-heading">—</div>
+
+    <div class="computed-block" id="computed">
+      <div class="comp-item">
+        <div class="comp-label">Søvn</div>
+        <div class="comp-val" id="c-sleep">—</div>
+      </div>
+      <div class="comp-item">
+        <div class="comp-label">Våken i sengen</div>
+        <div class="comp-val" id="c-awake">—</div>
+      </div>
+      <div class="comp-item">
+        <div class="comp-label">Effektivitet</div>
+        <div class="comp-val" id="c-eff">—</div>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-label">Tidspunkt du la deg</div>
+      <div class="time-tap empty" id="f-bed" onclick="openPicker('bed','Tidspunkt du la deg')">--:--</div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">Tid det tok å sovne</div>
+      <div class="time-tap empty" id="f-latency" onclick="openPicker('latency','Tid det tok å sovne','dur')">--:--</div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-label">Antall oppvåkninger</div>
+      <div class="counter-row">
+        <button class="cnt-btn" onclick="changeCount(-1)">−</button>
+        <div class="counter-val" id="f-wakings">0</div>
+        <button class="cnt-btn" onclick="changeCount(1)">+</button>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-label">Våkentid om natten</div>
+      <div class="time-tap empty" id="f-waketime" onclick="openPicker('waketime','Våkentid om natten','dur')">--:--</div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-label">Endelig oppvåkning</div>
+      <div class="time-tap empty" id="f-final" onclick="openPicker('final','Endelig oppvåkning')">--:--</div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-label">I sengen etter oppvåkning</div>
+      <div class="time-tap empty" id="f-after" onclick="openPicker('after','I sengen etter oppvåkning','dur')">--:--</div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-label">Søvn i løpet av dagen</div>
+      <div class="time-tap empty" id="f-nap" onclick="openPicker('nap','Søvn i løpet av dagen','dur')">--:--</div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS TAB -->
+<div id="tab-stats" class="tab-content">
+  <div class="week-nav">
+    <button class="nav-btn" onclick="statsNav(-1)">‹</button>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="week-label" id="stats-label">—</span>
+      <button class="mode-btn" id="stats-mode-btn" onclick="toggleStatsMode()">Måned</button>
+    </div>
+    <button class="nav-btn" onclick="statsNav(1)">›</button>
+  </div>
+  <div class="stats-wrap">
+    <div id="stats-body"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button onclick="exportData()" style="flex:1;background:var(--paper);border:1px solid var(--edge);border-radius:var(--rs);padding:14px;font-family:'Geist Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);cursor:pointer;">↑ Eksporter</button>
+      <button onclick="document.getElementById('import-input').click()" style="flex:1;background:var(--paper);border:1px solid var(--edge);border-radius:var(--rs);padding:14px;font-family:'Geist Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);cursor:pointer;">↓ Importer</button>
+    </div>
+    <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
+</div>
+
+<!-- PICKER MODAL -->
+<div class="overlay" id="overlay" onclick="overlayClick(event)">
+  <div class="picker-sheet">
+    <div class="picker-header">
+      <button class="picker-cancel" onclick="closePicker(false)">Avbryt</button>
+      <span class="picker-lbl" id="picker-lbl">Select</span>
+      <button class="picker-done" id="picker-done" onclick="closePicker(true)">Ferdig</button>
+    </div>
+    <div class="picker-wheels">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <span class="picker-unit" id="picker-h-unit"></span>
+        <div class="wheel" id="wh"></div>
+      </div>
+      <div class="picker-colon" id="picker-colon">:</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <span class="picker-unit" id="picker-m-unit"></span>
+        <div class="wheel" id="wm"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STORAGE ───────────────────────────────────────────────────
+const KEY = 'sleep_diary_v1';
+
+function loadAll()         { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } }
+function saveAll(d)        { localStorage.setItem(KEY, JSON.stringify(d)); }
+function getEntry(date)    { return loadAll()[date] || null; }
+function setEntry(date, e) { const a = loadAll(); a[date] = e; saveAll(a); }
+
+// ─── DATE HELPERS ──────────────────────────────────────────────
+const DAY_S  = ['Søn','Man','Tir','Ons','Tor','Fre','Lør'];
+const DAY_L  = ['Søndag','Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag'];
+const MON_S  = ['januar','februar','mars','april','mai','juni','juli','august','september','oktober','november','desember'];
+
+function toStr(d) {
+  const y  = d.getFullYear();
+  const m  = String(d.getMonth() + 1).padStart(2, '0');
+  const dy = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dy}`;
+}
+
+function parse(s)  { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); }
+
+function monday(d) {
+  const c = new Date(d); c.setHours(0,0,0,0);
+  const wd = c.getDay();
+  c.setDate(c.getDate() - (wd === 0 ? 6 : wd - 1));
+  return c;
+}
+
+function isoWeek(d) {
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dow = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - dow);
+  const y1 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return [t.getUTCFullYear(), Math.ceil(((t - y1) / 86400000 + 1) / 7)];
+}
+
+function heading(ds) { const d = parse(ds); return `${DAY_L[d.getDay()]}, ${d.getDate()}. ${MON_S[d.getMonth()]}`; }
+
+// Returns true only if the entry has at least one meaningful value logged
+function hasData(e) {
+  if (!e) return false;
+  return !!(e.bed || e.final || (e.wakings > 0) || e.latency || e.waketime || e.after || e.nap);
+}
+
+// ─── STATE ─────────────────────────────────────────────────────
+function rollingStart() { const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-6); return d; }
+let weekStart       = monday(new Date());
+let activeDate      = toStr(new Date());
+let form            = blank();
+
+let statsWeekStart  = rollingStart();
+let statsMonthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+let statsMode       = 'week'; // 'week' | 'month'
+
+function blank() {
+  return { bed:'', latency:'', wakings:0, waketime:'', final:'', after:'', nap:'' };
+}
+
+// ─── BOOT ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const hdr = document.querySelector('.app-header');
+  if (hdr) document.documentElement.style.setProperty('--header-h', hdr.offsetHeight + 'px');
+  setupTabs();
+  renderStrip();
+  loadDay(activeDate);
+});
+
+// ─── TABS ──────────────────────────────────────────────────────
+function setupTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const t = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === `tab-${t}`));
+      if (t === 'stats') renderStats();
+    });
+  });
+}
+
+// ─── DIARY WEEK / STRIP ───────────────────────────────────────
+function changeWeek(dir) {
+  weekStart = new Date(weekStart);
+  weekStart.setDate(weekStart.getDate() + dir * 7);
+  renderStrip();
+}
+
+function renderStrip() {
+  const [, wn] = isoWeek(weekStart);
+  document.getElementById('week-label').textContent = `Uke ${wn}`;
+
+  const strip = document.getElementById('days-strip');
+  strip.innerHTML = '';
+  const all = loadAll();
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart);
+    d.setDate(d.getDate() + i);
+    const ds = toStr(d);
+
+    const chip = document.createElement('button');
+    chip.className = 'day-chip';
+    if (hasData(all[ds])) chip.classList.add('has-data');
+    if (ds === activeDate) chip.classList.add('active');
+    chip.innerHTML = `<span class="dn">${DAY_S[d.getDay()]}</span><span class="dd">${d.getDate()}</span>`;
+    chip.addEventListener('click', () => {
+      activeDate = ds;
+      document.querySelectorAll('.day-chip').forEach(c => c.classList.toggle('active', c === chip));
+      loadDay(ds);
+    });
+    strip.appendChild(chip);
+  }
+}
+
+// ─── LOAD / PERSIST ────────────────────────────────────────────
+function loadDay(ds) {
+  activeDate = ds;
+  document.getElementById('date-heading').textContent = heading(ds);
+  const e = getEntry(ds);
+  form = e ? { ...blank(), ...e } : blank();
+  renderForm();
+  updateComputed();
+}
+
+function durDisplay(val) {
+  if (!val) return null;
+  const [h, m] = val.split(':').map(Number);
+  if (h > 0 && m > 0) return `${h}t ${m}m`;
+  if (h > 0) return `${h}t`;
+  if (m > 0) return `${m}m`;
+  return '0m';
+}
+
+function renderForm() {
+  setTap('bed',      form.bed);
+  setTap('latency',  form.latency,  durDisplay(form.latency));
+  setTap('waketime', form.waketime, durDisplay(form.waketime));
+  setTap('final',    form.final);
+  setTap('after',    form.after,    durDisplay(form.after));
+  setTap('nap',      form.nap,      durDisplay(form.nap));
+  document.getElementById('f-wakings').textContent = form.wakings;
+}
+
+function setTap(field, val, display) {
+  const el = document.getElementById(`f-${field}`);
+  if (val) { el.textContent = display || val; el.classList.remove('empty'); }
+  else     { el.textContent = '--:--'; el.classList.add('empty'); }
+}
+
+function persistForm() {
+  const entry = {
+    ...form,
+    sleep_mins: computeSleep(),
+    inbed_mins: computeInBed(),
+    efficiency: computeEff()
+  };
+  setEntry(activeDate, entry);
+  renderStrip();
+}
+
+// ─── COUNTER ───────────────────────────────────────────────────
+function changeCount(d) {
+  form.wakings = Math.max(0, (form.wakings || 0) + d);
+  document.getElementById('f-wakings').textContent = form.wakings;
+  persistForm();
+}
+
+// ─── CALCULATIONS ──────────────────────────────────────────────
+function toMins(t) {
+  if (!t || t === '--:--') return null;
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function fmtMins(m) {
+  if (m == null || m < 0) return '—';
+  return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
+}
+
+function computeInBed() {
+  const bed = toMins(form.bed), fin = toMins(form.final), aft = toMins(form.after) || 0;
+  if (bed == null || fin == null) return null;
+  let d = fin - bed; if (d < 0) d += 1440;
+  return d + aft;
+}
+
+function computeSleep() {
+  const ib = computeInBed();
+  if (ib == null) return null;
+  return Math.max(0, ib - (toMins(form.latency) || 0) - (toMins(form.after) || 0) - (toMins(form.waketime) || 0));
+}
+
+function computeEff() {
+  const s = computeSleep(), b = computeInBed();
+  return (s != null && b != null && b > 0) ? Math.round(s / b * 100) : null;
+}
+
+function updateComputed() {
+  const sleep = computeSleep(), inbed = computeInBed(), eff = computeEff();
+  const awake = (sleep != null && inbed != null) ? inbed - sleep : null;
+  const block = document.getElementById('computed');
+  if (sleep == null && inbed == null) { block.classList.remove('show'); return; }
+  block.classList.add('show');
+  document.getElementById('c-sleep').textContent = fmtMins(sleep);
+  document.getElementById('c-awake').textContent = fmtMins(awake);
+  const el = document.getElementById('c-eff');
+  el.textContent = eff != null ? `${eff}%` : '—';
+  el.className = 'comp-val' + (eff == null ? '' : eff >= 85 ? ' good' : eff >= 70 ? ' warn' : ' bad');
+}
+
+// ─── PICKER ────────────────────────────────────────────────────
+let pField = null, pMode = 'time';
+
+const FIELD_SEQUENCE = [
+  { field: 'bed',      label: 'Tidspunkt du la deg',      mode: 'time' },
+  { field: 'latency',  label: 'Tid det tok å sovne',       mode: 'dur'  },
+  { field: 'waketime', label: 'Våkentid om natten',        mode: 'dur'  },
+  { field: 'final',    label: 'Endelig oppvåkning',        mode: 'time' },
+  { field: 'after',    label: 'I sengen etter oppvåkning', mode: 'dur'  },
+  { field: 'nap',      label: 'Søvn i løpet av dagen',     mode: 'dur'  },
+];
+
+const DUR_MIN_STEP = 5;
+const DUR_MIN_VALS = Array.from({length: 12}, (_, i) => i * DUR_MIN_STEP);
+const REPEATS = 7; // number of times to repeat items for infinite-scroll illusion
+
+function openPicker(field, label, mode = 'time') {
+  loadPickerContent(field, label, mode);
+  document.getElementById('overlay').classList.add('open');
+}
+
+function buildWheel(id, items) {
+  const w = document.getElementById(id);
+  w.innerHTML = '';
+  const top = document.createElement('div'); top.className = 'wheel-spacer'; w.appendChild(top);
+  for (let r = 0; r < REPEATS; r++) {
+    items.forEach(item => {
+      const it = document.createElement('div');
+      it.className = 'wheel-item';
+      it.textContent = item.label;
+      it.dataset.v = item.val;
+      w.appendChild(it);
+    });
+  }
+  const bot = document.createElement('div'); bot.className = 'wheel-spacer'; w.appendChild(bot);
+  w._itemCount = items.length;
+
+  let wTimer = null;
+  w.onscroll = () => {
+    clearTimeout(wTimer);
+    if (w._justWrapped) { w._justWrapped = false; return; }
+    wTimer = setTimeout(() => {
+      const n = w._itemCount;
+      let idx = Math.round(w.scrollTop / 46);
+      // If drifted into the first or last repetition, silently jump to middle equivalent
+      const lo = n, hi = n * (REPEATS - 1);
+      if (idx < lo || idx >= hi) {
+        idx = ((idx % n) + n) % n + Math.floor(REPEATS / 2) * n;
+        w._justWrapped = true;
+        w.scrollTo({ top: idx * 46, behavior: 'instant' });
+      } else {
+        w.scrollTo({ top: idx * 46, behavior: 'smooth' });
+      }
+    }, 120);
+  };
+}
+
+function snapTo(id, idx) {
+  const w = document.getElementById(id);
+  const n = w._itemCount || 1;
+  // Land in the middle repetition so there's room to scroll either direction
+  w.scrollTo({ top: (Math.floor(REPEATS / 2) * n + idx) * 46, behavior: 'instant' });
+}
+
+function wheelItemVal(id) {
+  const w = document.getElementById(id);
+  const n = w._itemCount || 1;
+  const rawIdx = Math.round(w.scrollTop / 46);
+  const wrappedIdx = ((rawIdx % n) + n) % n;
+  const items = w.querySelectorAll('.wheel-item');
+  return items[wrappedIdx] ? parseInt(items[wrappedIdx].dataset.v) : 0;
+}
+
+function closePicker(save) {
+  const doneField = pField;
+  const doneMode  = pMode;
+  pField = null;
+
+  if (save && doneField) {
+    const h = wheelItemVal('wh');
+    const m = wheelItemVal('wm');
+    const val = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    form[doneField] = val;
+    if (doneMode === 'dur') {
+      const display = h > 0 && m > 0 ? `${h}t ${m}m`
+                    : h > 0           ? `${h}t`
+                    : m > 0           ? `${m}m`
+                    : '0m';
+      setTap(doneField, val, display);
+    } else {
+      setTap(doneField, val);
+    }
+    updateComputed();
+    persistForm();
+
+    const idx = FIELD_SEQUENCE.findIndex(f => f.field === doneField);
+    if (idx !== -1 && idx < FIELD_SEQUENCE.length - 1) {
+      loadPickerContent(FIELD_SEQUENCE[idx + 1].field, FIELD_SEQUENCE[idx + 1].label, FIELD_SEQUENCE[idx + 1].mode);
+      return;
+    }
+  }
+
+  document.getElementById('overlay').classList.remove('open');
+  if (save && doneField) showToast('Lagret ✓');
+}
+
+function loadPickerContent(field, label, mode) {
+  pField = field; pMode = mode;
+  document.getElementById('picker-lbl').textContent = label;
+
+  const stored = form[field];
+  let h = 0, m = 0;
+  if (stored) { [h, m] = stored.split(':').map(Number); }
+  else if (mode === 'time') { h = field === 'final' ? 7 : 23; }
+
+  if (mode === 'dur') {
+    const hItems = Array.from({length: 13}, (_, i) => ({ val: i, label: String(i).padStart(2,'0') }));
+    const mItems = DUR_MIN_VALS.map(n => ({ val: n, label: String(n).padStart(2,'0') }));
+    buildWheel('wh', hItems);
+    buildWheel('wm', mItems);
+    document.getElementById('picker-h-unit').textContent = 't';
+    document.getElementById('picker-m-unit').textContent = 'min';
+  } else {
+    const TIME_MIN_VALS = Array.from({length: 12}, (_, i) => i * 5);
+    const hItems = Array.from({length: 24}, (_, i) => ({ val: i, label: String(i).padStart(2,'0') }));
+    const mItems = TIME_MIN_VALS.map(n => ({ val: n, label: String(n).padStart(2,'0') }));
+    buildWheel('wh', hItems);
+    buildWheel('wm', mItems);
+    document.getElementById('picker-h-unit').textContent = '';
+    document.getElementById('picker-m-unit').textContent = '';
+  }
+
+  const seqIdx = FIELD_SEQUENCE.findIndex(f => f.field === field);
+  const isLast = seqIdx === -1 || seqIdx === FIELD_SEQUENCE.length - 1;
+  document.getElementById('picker-done').textContent = isLast ? 'Ferdig' : 'Neste';
+
+  const mScrollIdx = mode === 'dur'
+    ? Math.max(0, DUR_MIN_VALS.indexOf(Math.round(m / DUR_MIN_STEP) * DUR_MIN_STEP))
+    : Math.max(0, Math.round(m / 5) % 12);
+  requestAnimationFrame(() => { snapTo('wh', h); snapTo('wm', mScrollIdx); });
+}
+
+function overlayClick(e) {
+  if (e.target === document.getElementById('overlay')) closePicker(false);
+}
+
+// ─── STATS NAVIGATION ─────────────────────────────────────────
+function statsNav(dir) {
+  if (statsMode === 'week') {
+    statsWeekStart = new Date(statsWeekStart);
+    statsWeekStart.setDate(statsWeekStart.getDate() + dir * 7);
+  } else {
+    statsMonthStart = new Date(statsMonthStart);
+    statsMonthStart.setMonth(statsMonthStart.getMonth() + dir);
+  }
+  renderStats();
+}
+
+function toggleStatsMode() {
+  statsMode = statsMode === 'week' ? 'month' : 'week';
+  document.getElementById('stats-mode-btn').classList.toggle('active', statsMode === 'month');
+  document.getElementById('stats-mode-btn').textContent = statsMode === 'week' ? 'Måned' : 'Uke';
+  renderStats();
+}
+
+// ─── STATS RENDER ──────────────────────────────────────────────
+function renderStats() {
+  const all = loadAll();
+
+  if (!Object.keys(all).length) {
+    document.getElementById('stats-label').textContent = '—';
+    document.getElementById('stats-body').innerHTML =
+      `<div class="empty-msg"><span class="empty-moon">🌙</span>Ingen oppføringer ennå.<br>Begynn å logge i Registrering-fanen!</div>`;
+    return;
+  }
+
+  let entries = [];
+
+  if (statsMode === 'week') {
+    const endDate = new Date(statsWeekStart); endDate.setDate(endDate.getDate() + 6);
+    const fmt = d => `${d.getDate()} ${MON_S[d.getMonth()].slice(0,3)}`;
+    document.getElementById('stats-label').textContent = `${fmt(statsWeekStart)} – ${fmt(endDate)}`;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(statsWeekStart);
+      d.setDate(d.getDate() + i);
+      const ds = toStr(d);
+      if (hasData(all[ds])) entries.push({ ds, ...all[ds] });
+    }
+  } else {
+    const y  = statsMonthStart.getFullYear();
+    const mo = statsMonthStart.getMonth();
+    document.getElementById('stats-label').textContent =
+      `${MON_S[mo].charAt(0).toUpperCase() + MON_S[mo].slice(1)} ${y}`;
+    const daysInMonth = new Date(y, mo + 1, 0).getDate();
+    for (let i = 1; i <= daysInMonth; i++) {
+      const ds = `${y}-${String(mo+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+      if (hasData(all[ds])) entries.push({ ds, ...all[ds] });
+    }
+  }
+
+  if (!entries.length) {
+    document.getElementById('stats-body').innerHTML =
+      `<div class="empty-msg"><span class="empty-moon">🌙</span>Ingen data for denne perioden.</div>`;
+    return;
+  }
+
+  renderStatsBody(entries);
+}
+
+function avg(arr) {
+  const v = arr.filter(x => x != null && x > 0);
+  return v.length ? Math.round(v.reduce((a,b) => a+b, 0) / v.length) : null;
+}
+
+function avgWithZero(arr) {
+  const v = arr.filter(x => x != null);
+  return v.length ? Math.round(v.reduce((a,b) => a+b, 0) / v.length) : null;
+}
+
+function renderStatsBody(entries) {
+  entries.sort((a, b) => a.ds.localeCompare(b.ds));
+
+  const avgSleep   = avg(entries.map(e => e.sleep_mins));
+  const avgAwake   = avgWithZero(entries.map(e => (e.inbed_mins != null && e.sleep_mins != null) ? Math.max(0, e.inbed_mins - e.sleep_mins) : null));
+  const avgEff     = avgWithZero(entries.map(e => e.efficiency));
+
+  document.getElementById('stats-body').innerHTML = `
+    <div style="font-size:9px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--edge);">${statsMode === 'week' ? 'Gjennomsnitt siste 7 dager' : 'Gjennomsnitt denne måneden'}</div>
+    <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr;">
+      <div class="stat-card">
+        <div class="stat-card-label">Søvn</div>
+        <div class="stat-card-val">${fmtMins(avgSleep)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Våkentid</div>
+        <div class="stat-card-val">${fmtMins(avgAwake)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Effektivitet</div>
+        <div class="stat-card-val">${avgEff != null ? avgEff + '%' : '—'}</div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Søvn og effektivitet per dag</div>
+      <div class="chart-wrap"><canvas id="week-chart"></canvas></div>
+      <div class="legend">
+        <div class="leg"><div class="leg-dot" style="background:#3d5a99"></div>Søvn</div>
+        <div class="leg"><div class="leg-dot" style="background:#8ab8e8"></div>Våkentid</div>
+        <div class="leg"><div class="leg-dot" style="background:#7b1a1a;border-radius:50%;width:8px;height:8px;"></div>Effektivitet %</div>
+      </div>
+    </div>
+  `;
+
+  const labels = entries.map(e => {
+    const d = parse(e.ds);
+    return statsMode === 'month'
+      ? String(d.getDate())
+      : DAY_S[d.getDay()] + ' ' + d.getDate();
+  });
+
+  const sleepH      = entries.map(e => e.sleep_mins  ? +(e.sleep_mins  / 60).toFixed(2) : 0);
+  const awakeInBedH = entries.map(e => {
+    const ib = e.inbed_mins || 0;
+    const sl = e.sleep_mins || 0;
+    return +(Math.max(0, ib - sl) / 60).toFixed(2);
+  });
+  const effData = entries.map(e => e.efficiency != null ? e.efficiency : null);
+
+  if (window._chartInst) { window._chartInst.destroy(); window._chartInst = null; }
+
+  window._chartInst = new Chart(document.getElementById('week-chart').getContext('2d'), {
+    data: {
+      labels,
+      datasets: [
+        {
+          type: 'bar',
+          data: sleepH,
+          backgroundColor: '#3d5a99',
+          borderRadius: 0,
+          label: 'Søvn',
+          order: 1,
+          stack: 'bed'
+        },
+        {
+          type: 'bar',
+          data: awakeInBedH,
+          backgroundColor: '#8ab8e8',
+          borderRadius: { topLeft: 5, topRight: 5, bottomLeft: 0, bottomRight: 0 },
+          label: 'Våkentid',
+          order: 1,
+          stack: 'bed'
+        },
+        {
+          type: 'line',
+          data: effData,
+          borderColor: '#7b1a1a',
+          backgroundColor: 'rgba(123,26,26,0.06)',
+          borderWidth: 1.5,
+          pointBackgroundColor: '#7b1a1a',
+          pointRadius: 3,
+          tension: 0.4,
+          yAxisID: 'y2',
+          label: 'Effektivitet',
+          order: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          stacked: true,
+          grid:  { color: 'rgba(0,0,0,0.05)' },
+          ticks: { color: '#8a8a9a', font: { size: 10, family: 'Geist Mono' } },
+          border:{ color: '#e2ddd6' }
+        },
+        y: {
+          stacked: true,
+          min: 0, max: 10,
+          grid:  { color: 'rgba(0,0,0,0.05)' },
+          ticks: { color: '#8a8a9a', font: { size: 10, family: 'Geist Mono' }, stepSize: 1, callback: v => v+'h' },
+          border:{ color: '#e2ddd6' }
+        },
+        y2: {
+          position: 'right',
+          min: 0, max: 100,
+          grid:  { display: false },
+          ticks: { color: '#8a8a9a', font: { size: 10, family: 'Geist Mono' }, callback: v => v+'%' },
+          border:{ color: '#e2ddd6' }
+        }
+      }
+    }
+  });
+}
+
+// ─── EXPORT / IMPORT ───────────────────────────────────────────
+function exportData() {
+  const data = localStorage.getItem(KEY) || '{}';
+  const date = toStr(new Date());
+  const filename = `sovn-backup-${date}.json`;
+  const file = new File([data], filename, { type: 'application/json' });
+
+  if (navigator.share && navigator.canShare({ files: [file] })) {
+    navigator.share({ files: [file], title: 'Søvndagbok backup' });
+  } else {
+    // Fallback: download link
+    const url = URL.createObjectURL(file);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error();
+      saveAll(parsed);
+      renderStrip();
+      loadDay(activeDate);
+      renderStats();
+      showToast('Data importert ✓');
+    } catch {
+      showToast('Ugyldig fil — ingen data importert');
+    }
+    event.target.value = ''; // reset so same file can be re-selected
+  };
+  reader.readAsText(file);
+}
+
+// ─── TOAST ─────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>
