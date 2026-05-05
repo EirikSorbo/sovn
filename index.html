@@ -16,7 +16,6 @@
 
 :root {
   --ink:     #1a1a2e;
-  --ink2:    #252540;
   --surface: #f4f1ec;
   --paper:   #faf8f4;
   --edge:    #e2ddd6;
@@ -40,10 +39,28 @@ body {
   overflow-x: hidden;
 }
 
+.data-btn {
+  background: none;
+  border: 1px solid var(--edge);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 15px;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  line-height: 1;
+}
+.data-btn:active { background: var(--edge); color: var(--ink); }
+
 /* ── HEADER ──────────────────────────── */
 .app-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 14px 20px 12px;
   background: var(--paper);
   border-bottom: 1px solid var(--edge);
@@ -473,7 +490,13 @@ body {
 <body>
 
 <header class="app-header">
+  <div style="width:66px"></div>
   <div class="header-logo">Søvn</div>
+  <div style="display:flex;gap:6px;width:66px;justify-content:flex-end;">
+    <button class="data-btn" onclick="exportData()" title="Eksporter">↑</button>
+    <button class="data-btn" onclick="document.getElementById('import-input').click()" title="Importer">↓</button>
+    <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
 </header>
 
 <div class="tab-bar">
@@ -561,11 +584,6 @@ body {
   </div>
   <div class="stats-wrap">
     <div id="stats-body"></div>
-    <div style="display:flex;gap:8px;margin-top:16px;">
-      <button onclick="exportData()" style="flex:1;background:var(--paper);border:1px solid var(--edge);border-radius:var(--rs);padding:14px;font-family:'Geist Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);cursor:pointer;">↑ Eksporter</button>
-      <button onclick="document.getElementById('import-input').click()" style="flex:1;background:var(--paper);border:1px solid var(--edge);border-radius:var(--rs);padding:14px;font-family:'Geist Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);cursor:pointer;">↓ Importer</button>
-    </div>
-    <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(event)">
   </div>
 </div>
 
@@ -1148,14 +1166,15 @@ function exportData() {
   const filename = `sovn-backup-${date}.json`;
   const file = new File([data], filename, { type: 'application/json' });
 
-  if (navigator.share && navigator.canShare({ files: [file] })) {
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
     navigator.share({ files: [file], title: 'Søvndagbok backup' });
   } else {
-    // Fallback: download link
     const url = URL.createObjectURL(file);
     const a = document.createElement('a');
-    a.href = url; a.download = filename; a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    a.href = url; a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
   }
 }
 
