@@ -1070,6 +1070,7 @@ function renderStatsBody(entries) {
       <div class="legend">
         <div class="leg"><div class="leg-dot" style="background:#3d5a99"></div>Søvn</div>
         <div class="leg"><div class="leg-dot" style="background:#8ab8e8"></div>Våkentid</div>
+        <div class="leg"><div style="width:16px;height:0;border-top:2px dashed #c45a5a;margin-right:4px;flex-shrink:0;"></div>Mål</div>
         <div class="leg"><div class="leg-dot" style="background:#7b1a1a;border-radius:50%;width:8px;height:8px;"></div>Effektivitet %</div>
       </div>
     </div>
@@ -1092,7 +1093,27 @@ function renderStatsBody(entries) {
 
   if (window._chartInst) { window._chartInst.destroy(); window._chartInst = null; }
 
+  const refLinePlugin = {
+    id: 'refLine',
+    beforeDatasetsDraw(chart) {
+      const { ctx, chartArea: { left, right }, scales: { y } } = chart;
+      const yVal = 6.75;
+      if (y.min > yVal || y.max < yVal) return;
+      const yPx = y.getPixelForValue(yVal);
+      ctx.save();
+      ctx.setLineDash([6, 4]);
+      ctx.strokeStyle = '#c45a5a';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(left, yPx);
+      ctx.lineTo(right, yPx);
+      ctx.stroke();
+      ctx.restore();
+    }
+  };
+
   window._chartInst = new Chart(document.getElementById('week-chart').getContext('2d'), {
+    plugins: [refLinePlugin],
     data: {
       labels,
       datasets: [
@@ -1142,13 +1163,14 @@ function renderStatsBody(entries) {
         },
         y: {
           stacked: true,
+          position: 'right',
           min: 0, max: 10,
           grid:  { color: 'rgba(0,0,0,0.05)' },
           ticks: { color: '#8a8a9a', font: { size: 10, family: 'Geist Mono' }, stepSize: 1, callback: v => v+'h' },
           border:{ color: '#e2ddd6' }
         },
         y2: {
-          position: 'right',
+          position: 'left',
           min: 0, max: 100,
           grid:  { display: false },
           ticks: { color: '#8a8a9a', font: { size: 10, family: 'Geist Mono' }, callback: v => v+'%' },
