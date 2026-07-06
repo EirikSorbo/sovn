@@ -1310,7 +1310,22 @@ function importData(event) {
   reader.onload = e => {
     try {
       const parsed = JSON.parse(e.target.result);
-      if (typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error();
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) throw new Error();
+
+      // Import replaces everything on this device — confirm before wiping existing data
+      const incoming = Object.values(parsed).filter(hasData).length;
+      const existing = Object.values(loadAll()).filter(hasData).length;
+      if (existing > 0) {
+        const ok = confirm(
+          `Importer sikkerhetskopi?\n\n` +
+          `Dette ERSTATTER alle data på denne enheten ` +
+          `(${existing} ${existing === 1 ? 'dag' : 'dager'}) ` +
+          `med innholdet i fila (${incoming} ${incoming === 1 ? 'dag' : 'dager'}).\n\n` +
+          `Handlingen kan ikke angres.`
+        );
+        if (!ok) { showToast('Import avbrutt'); event.target.value = ''; return; }
+      }
+
       saveAll(parsed);
       backupSnoozed = false;
       markBackupDone(); // imported data equals a file on disk — treat as a fresh backup point
