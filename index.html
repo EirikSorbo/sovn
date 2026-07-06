@@ -464,6 +464,42 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* ── BACKUP REMINDER ─────────────────── */
+.backup-banner {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #fff7e6;
+  border-bottom: 1px solid #e8d9b0;
+}
+.backup-banner.show { display: flex; }
+.backup-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.backup-title { font-size: 12px; font-weight: 600; color: var(--ink); }
+.backup-sub { font-size: 10px; color: var(--muted); letter-spacing: 0.04em; }
+.backup-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.backup-do {
+  background: var(--ink);
+  color: var(--surface);
+  border: none;
+  border-radius: var(--rs);
+  padding: 7px 12px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.backup-x {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 6px;
+  line-height: 1;
+}
+
 /* ── TOAST ───────────────────────────── */
 .toast {
   position: fixed;
@@ -502,6 +538,18 @@ body {
 <div class="tab-bar">
   <button class="tab-btn active" data-tab="diary">Registrering</button>
   <button class="tab-btn" data-tab="stats">Oversikt</button>
+</div>
+
+<!-- BACKUP REMINDER -->
+<div id="backup-banner" class="backup-banner">
+  <div class="backup-txt">
+    <span class="backup-title">🛡️ Sikkerhetskopi anbefalt</span>
+    <span class="backup-sub" id="backup-sub"></span>
+  </div>
+  <div class="backup-actions">
+    <button class="backup-do" onclick="exportData()">Sikkerhetskopier</button>
+    <button class="backup-x" onclick="dismissBackup()" aria-label="Lukk">✕</button>
+  </div>
 </div>
 
 <!-- DIARY TAB -->
@@ -620,6 +668,52 @@ function saveAll(d)        { localStorage.setItem(KEY, JSON.stringify(d)); }
 function getEntry(date)    { return loadAll()[date] || null; }
 function setEntry(date, e) { const a = loadAll(); a[date] = e; saveAll(a); }
 
+// ─── BACKUP META ───────────────────────────────────────────────
+const META_KEY = 'sleep_diary_meta_v1';
+const BACKUP_REMIND_DAYS = 5; // nudge before iOS' ~7-day storage-eviction window
+
+function loadMeta()  { try { return JSON.parse(localStorage.getItem(META_KEY)) || {}; } catch { return {}; } }
+function saveMeta(m) { localStorage.setItem(META_KEY, JSON.stringify(m)); }
+
+// Cheap, stable string hash (djb2) — detects un-backed-up changes without storing a copy
+function hashStr(s) { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return h.toString(36); }
+function currentDataHash() { return hashStr(localStorage.getItem(KEY) || '{}'); }
+function daysSince(iso) { return iso ? (Date.now() - new Date(iso).getTime()) / 86400000 : Infinity; }
+
+let backupSnoozed = false;
+
+function checkBackupReminder() {
+  const banner = document.getElementById('backup-banner');
+  if (backupSnoozed) { banner.classList.remove('show'); return; }
+
+  const all = loadAll();
+  const hasEntries = Object.values(all).some(hasData);
+  if (!hasEntries) { banner.classList.remove('show'); return; }
+
+  const meta  = loadMeta();
+  const dirty = meta.lastBackupHash !== currentDataHash();
+  const stale = daysSince(meta.lastBackupAt) >= BACKUP_REMIND_DAYS;
+
+  if (dirty && stale) {
+    const d = daysSince(meta.lastBackupAt);
+    document.getElementById('backup-sub').textContent =
+      meta.lastBackupAt ? `Sist: ${Math.floor(d)} dager siden` : 'Aldri sikkerhetskopiert';
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+function markBackupDone() {
+  saveMeta({ lastBackupAt: new Date().toISOString(), lastBackupHash: currentDataHash() });
+  checkBackupReminder();
+}
+
+function dismissBackup() {
+  backupSnoozed = true; // suppressed for this session; reappears on next launch if still due
+  document.getElementById('backup-banner').classList.remove('show');
+}
+
 // ─── DATE HELPERS ──────────────────────────────────────────────
 const DAY_S  = ['Søn','Man','Tir','Ons','Tor','Fre','Lør'];
 const DAY_L  = ['Søndag','Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag'];
@@ -678,6 +772,12 @@ document.addEventListener('DOMContentLoaded', () => {
   setupTabs();
   renderStrip();
   loadDay(activeDate);
+  checkBackupReminder();
+});
+
+// Re-check when the app is re-opened (e.g. returning after days away)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') checkBackupReminder();
 });
 
 // ─── TABS ──────────────────────────────────────────────────────
@@ -1189,7 +1289,9 @@ function exportData() {
   const file = new File([data], filename, { type: 'application/json' });
 
   if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-    navigator.share({ files: [file], title: 'Søvndagbok backup' });
+    navigator.share({ files: [file], title: 'Søvndagbok backup' })
+      .then(markBackupDone)
+      .catch(() => {}); // user cancelled the share sheet — don't record a backup
   } else {
     const url = URL.createObjectURL(file);
     const a = document.createElement('a');
@@ -1197,6 +1299,7 @@ function exportData() {
     document.body.appendChild(a);
     a.click();
     setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+    markBackupDone();
   }
 }
 
@@ -1209,6 +1312,8 @@ function importData(event) {
       const parsed = JSON.parse(e.target.result);
       if (typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error();
       saveAll(parsed);
+      backupSnoozed = false;
+      markBackupDone(); // imported data equals a file on disk — treat as a fresh backup point
       renderStrip();
       loadDay(activeDate);
       renderStats();
